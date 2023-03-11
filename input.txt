@@ -1,0 +1,11 @@
+a=13
+b=11
+c=100
+d=5
+for _ in range(10,a,2):              
+    if _==b :
+        while(a+b<c):
+            c=d
+            a*=10
+    d=c
+C=a

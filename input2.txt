@@ -1,0 +1,4 @@
+a=2
+for i in range(5,10):
+    a=a*i
+        print(a)
