@@ -295,6 +295,21 @@ struct token* get_tokens(char* data_str){
             tokens.push_back(temp);
             i += 1;
         }
+        //*******************************BOOL*****************************************
+        if(i+3<data_len&& data_str[i] == 'T' && data_str[i + 1] == 'r' && data_str[i + 2] == 'u' && data_str[i + 3] == 'e'&&(i+4==data_len||data_str[i+4]=' '||data_str[i+4]='\n')  ){
+            struct token temp;
+            temp.token_type = TRUE;
+            tokens.push_back(temp);
+            i += 4;
+        }
+
+        
+        if(i+4<data_len&& data_str[i] == 'F' && data_str[i + 1] == 'a' && data_str[i + 2] == 'l' && data_str[i + 3] == 's'&&data_str[i + 4] == 'e'&&(i+5==data_len||data_str[i+5]=' '||data_str[i+5]='\n')){
+            struct token temp;
+            temp.token_type = FALSE;
+            tokens.push_back(temp);
+            i += 5;
+        }
 
         //*****************************ID KEYWORD*************************************
         if((data_str[i]>='a'&&data_str[i]<='z')||(data_str[i]>='A'&&data_str[i]<='Z')||data_str[i]=='_'){
