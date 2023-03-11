@@ -310,7 +310,20 @@ struct token* get_tokens(char* data_str){
             tokens.push_back(temp);
             i += 5;
         }
-
+        //********************************NUM*****************************************
+        if((data_str[i]>='0'&&data_str[i]<='9')){
+            char* s1;int t=i;
+            while((data_str[t]>='0'&&data_str[t]<='9')){
+                strncat(s1, &data_str[t], 1);
+                t++;
+            }
+            struct token temp;
+            temp.lexeme=s1;
+            temp.token_type=NUM;
+            push_back(tokens,temp);
+            i=t;
+            continue;
+        }
         //*****************************ID KEYWORD*************************************
         if((data_str[i]>='a'&&data_str[i]<='z')||(data_str[i]>='A'&&data_str[i]<='Z')||data_str[i]=='_'){
             char* s1;
