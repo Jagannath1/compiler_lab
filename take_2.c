@@ -41,8 +41,10 @@ const int FALSE = 34;
 const int NUM = 35;
 const int IDEN = 36;
 const int ASSIGN = 37;
+const int EOFT=38;
 int token_cnt = 0;
-
+int is_lexical_error=0;
+int is_paranthesis_error= 0;
 char* INPUT_FILE = "input.txt";
 char* append_char_to_str(char* str, char c){
     size_t len = strlen(str);
@@ -126,11 +128,10 @@ struct token{
     int indent_no;
 };
 int get_tokens_cnt(char* data_str){
-    int cnt = 0;
+    int cnt = 0;int line_no=1;
     int data_len = strlen(data_str);
     for(int i = 0 ; i < data_len;){
-        printf("%c ",data_str[i]);
-        printf("%d\n",cnt);
+        // printf("%c\n",data_str[i]);
         //************************** COMMENT *************************************
         if(data_str[i] == '#'){
             while(i < data_len && data_str[i] != '\n'){
@@ -146,9 +147,6 @@ int get_tokens_cnt(char* data_str){
                 str = append_char_to_str(str,data_str[i]);
                 i++;
             }
-            struct token temp;
-            temp.lexeme = str;
-            temp.token_type = STR;
             cnt++;
             continue;
         }
@@ -159,9 +157,6 @@ int get_tokens_cnt(char* data_str){
                 str = append_char_to_str(str,data_str[i]);
                 i++;
             }
-            struct token temp;
-            temp.lexeme = str;
-            temp.token_type = STR;
             cnt++;
             continue;
         }
@@ -172,7 +167,7 @@ int get_tokens_cnt(char* data_str){
         }
         //***************************INDENTATION************************************
         if(data_str[i] == '\n'){
-            int curr_inden = 0;
+            int curr_inden = 0;line_no++;
             while(i < data_len && (data_str[i] == '\n' || data_str[i] == ' ')){
                 if(data_str[i] == '\n'){
                     curr_inden = 0;
@@ -182,129 +177,123 @@ int get_tokens_cnt(char* data_str){
                 }
                 i++;
             }
-            struct token temp;
-            temp.indent_no = curr_inden/4;
-            temp.token_type = INDEN;
             cnt++;
             continue;
         }
         //******************************FOR******************************************
         if(i + 3 < data_len && data_str[i] == 'f' && data_str[i + 1] == 'o' && data_str[i+2] == 'r' && (data_str[i + 3] == ' ')){
-            struct token temp;
-            temp.token_type = FOR;
             cnt++;
             i += 3;
+            continue;
         }
         //******************************WHILE******************************************
         if(i + 5 < data_len && data_str[i] == 'w' && data_str[i + 1] == 'h' && data_str[i+2] == 'i' && data_str[i+3] == 'l'&& data_str[i+4] == 'e'&& (data_str[i + 5] == ' '||data_str[i + 5] == '(')){
-            struct token temp;
-            temp.token_type = WHILE;
             cnt++;
             i += 5;
+            continue;
+        }
+        //*****************************IN KEYWORD*************************************
+        if(i + 2 < data_len && data_str[i] == 'i' && data_str[i + 1] == 'n' && (data_str[i + 2] == ' ')){
+            cnt++;
+            i += 2;
+            continue;
         }
         //*****************************IF KEYWORD*************************************
         if(i + 2 < data_len && data_str[i] == 'i' && data_str[i + 1] == 'f' && (data_str[i + 2] == ' ' || data_str[i + 2] == '(')){
-            struct token temp;
-            temp.token_type = IF;
             cnt++;
             i += 2;
+            continue;
         }
         //*****************************ELSE KEYWORD*************************************
         if(i + 4 < data_len && data_str[i] == 'e' && data_str[i + 1] == 'l' && data_str[i + 2] == 's' && data_str[i + 3] == 'e' && (data_str[i + 4] == ' ' || data_str[i + 4] == ':') ){
-            struct token temp;
-            temp.token_type = ELSE;
             cnt++;
             i += 4;
+            continue;
         }
         //*****************************ELIF KEYWORD*************************************
         if(i + 4 < data_len && data_str[i] == 'e' && data_str[i + 1] == 'l' && data_str[i + 2] == 'i' && data_str[i + 3] == 'f' && (data_str[i + 4] == ' ' || data_str[i + 4] == '(') ){
-            struct token temp;
-            temp.token_type = ELIF;
             cnt++;
             i += 4;
+            continue;
         }
         //*****************************RANGE KEYWORD*************************************
         if(i + 5 < data_len && data_str[i] == 'r' && data_str[i + 1] == 'a' && data_str[i + 2] == 'n' && data_str[i + 3] == 'g' && data_str[i + 4] == 'e' && data_str[i + 5] == '('){
-            struct token temp;
-            temp.token_type = RANGE;
             cnt++;
             i += 5;
+            continue;
         }
         //*****************************INPUT KEYWORD*************************************
         if(i+5<data_len&&data_str[i]=='i'&&data_str[i+1]=='n'&&data_str[i+2]=='p'&&data_str[i+3]=='u'&&data_str[i+4]=='t' && data_str[i + 5] == '('){
-            struct token temp;
-            temp.lexeme="input";
-            temp.token_type=INPUT;
             cnt++;
             i=i+5;
             continue;
         }
         //*****************************LPAR KEYWORD*************************************
         if(data_str[i]=='('){
-            struct token temp;
-            temp.lexeme="(";
-            temp.token_type=LPAR;
             cnt++;
             i=i+1;
             continue;
         }
         //*****************************RPAR KEYWORD*************************************
         if(data_str[i]==')'){
-            struct token temp;
-            temp.lexeme=")";
-            temp.token_type=RPAR;
             cnt++;
             i=i+1;
             continue;
         }
         //*****************************PRINT KEYWORD*************************************
         if(i+4<data_len&&data_str[i]=='p'&&data_str[i+1]=='r'&&data_str[i+2]=='i'&&data_str[i+3]=='n'&&data_str[i+4]=='t'){
-            struct token temp;
-            temp.lexeme="print";
-            temp.token_type=PRINT;
             cnt++;
             i=i+5;
             continue;
         }
         //*****************************AND KEYWORD*************************************
         if(i+3<data_len&&data_str[i]=='a'&&data_str[i+1]=='n'&&data_str[i+2]=='d'&&data_str[i+3]==' '){
-            struct token temp;
-            temp.lexeme="and";
-            temp.token_type=AND;
             cnt++;
             i=i+4;
             continue;
         }
         //*****************************NOT KEYWORD*************************************
         if(i+3<data_len&&data_str[i]=='n'&&data_str[i+1]=='o'&&data_str[i+2]=='t'&&data_str[i+3]==' '){
-            struct token temp;
-            temp.lexeme="not";
-            temp.token_type=NOT;
             cnt++;
             i=i+4;
             continue;
         }
         //*****************************OR KEYWORD*************************************
         if(i+2<data_len&&data_str[i]=='o'&&data_str[i+1]=='r'&&data_str[i+2]==' '){
-            struct token temp;
-            temp.lexeme="or";
-            temp.token_type=OR;
             cnt++;
             i=i+4;
+            continue;
+        }
+        //*****************************ASSIGN**************************************************
+        if(i + 2 < data_len && data_str[i] == '+' && data_str[i + 1] == '='  ){
+            cnt++;
+            i += 2;
+            continue;
+        }
+        if(i + 2 < data_len && data_str[i] == '-' && data_str[i + 1] == '='  ){
+            cnt++;
+            i += 2;
+            continue;
+        }
+        if(i + 2 < data_len && data_str[i] == '/' && data_str[i + 1] == '='  ){
+            cnt++;
+            i += 2;
+            continue;
+        }
+        if(i + 2 < data_len && data_str[i] == '*' && data_str[i + 1] == '='  ){
+            cnt++;
+            i += 2;
             continue;
         }
         //*****************************ARITHMETIC OPERATORS*************************************
         char arithmetics[7] = {'+', '-', '/', '*', ':', '.', ','};
         int arithmetic_token_no[7] = {ADD, SUB, DIV, MUL, COLON, DOT, COMMA};
         int is_arithmetic = 0;
-        for(int j = 0 ;j < 7; j++){
-            if(arithmetics[j] == data_str[i]){
+        for(int k = 0 ;k < 7; k++){
+            if(arithmetics[k] == data_str[i]){
                 is_arithmetic = 1;
                 char* new_str = "";
-                new_str = append_char_to_str(new_str,arithmetics[j]);
-                struct token temp;
-                temp.lexeme = new_str;
-                temp.token_type = arithmetic_token_no[j];
+                new_str = append_char_to_str(new_str,arithmetics[k]);
                 i++;
                 cnt++;
                 break;
@@ -315,66 +304,58 @@ int get_tokens_cnt(char* data_str){
         }
         //**********************************RELOP*************************************
         if(i + 2 < data_len && data_str[i] == '<' && data_str[i + 1] == '='  ){
-            struct token temp;
-            temp.token_type = LE;
             cnt++;
             i += 2;
+            continue;
         }
 
         if(i + 2 < data_len && data_str[i] == '>' && data_str[i + 1] == '='  ){
-            struct token temp;
-            temp.token_type = GE;
             cnt++;
             i += 2;
+            continue;
         }
 
         if(i + 2 < data_len && data_str[i] == '=' && data_str[i + 1] == '='  ){
-            struct token temp;
-            temp.token_type = EQ;
             cnt++;
             i += 2;
+            continue;
         }
 
         if(i + 2 < data_len && data_str[i] == '!' && data_str[i + 1] == '='  ){
-            struct token temp;
-            temp.token_type = NE;
             cnt++;
             i += 2;
+            continue;
         }
+        
 
         if(i + 1 < data_len && data_str[i] == '<'   ){
-            struct token temp;
-            temp.token_type = LT;
             cnt++;
             i += 1;
+            continue;
         }
 
         if(i + 1 < data_len && data_str[i] == '>'  ){
-            struct token temp;
-            temp.token_type = GT;
             cnt++;
             i += 1;
+            continue;
         }
         if(i + 1 < data_len && data_str[i] == '='  ){
-            struct token temp;
-            temp.token_type = ASSIGN;
             cnt++;
             i += 1;
+            continue;
         }
         //*******************************BOOL*****************************************
         if(i+3<data_len&& data_str[i] == 'T' && data_str[i + 1] == 'r' && data_str[i + 2] == 'u' && data_str[i + 3] == 'e'&&(i+4==data_len||data_str[i+4]==' '||data_str[i+4]=='\n')  ){
-            struct token temp;
-            temp.token_type = TRUE;
             cnt++;
             i += 4;
+            continue;
         }
 
         
         if(i+4<data_len&& data_str[i] == 'F' && data_str[i + 1] == 'a' && data_str[i + 2] == 'l' && data_str[i + 3] == 's'&&data_str[i + 4] == 'e'&&(i+5==data_len||data_str[i+5]==' '||data_str[i+5]=='\n')){
-            struct token temp;
-            temp.token_type = FALSE;
             cnt++;
             i += 5;
+            continue;
         }
         //********************************NUM*****************************************
         if((data_str[i]>='0'&&data_str[i]<='9')){
@@ -383,26 +364,24 @@ int get_tokens_cnt(char* data_str){
                 s1 = append_char_to_str(s1,data_str[t]);
                 t++;
             }
-            struct token temp;
-            temp.lexeme=s1;
-            temp.token_type=NUM;
             cnt++;
             i=t;
             continue;
         }
         //*****************************ID KEYWORD*************************************
         if((data_str[i]>='a'&&data_str[i]<='z')||(data_str[i]>='A'&&data_str[i]<='Z')||data_str[i]=='_'){
-            char* s1;
-            while(((data_str[i]>='a'&&data_str[i]<='z')||(data_str[i]>='A'&&data_str[i]<='Z')||data_str[i]=='_')&&i<data_len){
-                s1 = append_char_to_str(s1,data_str[i]);
-                i++;
+            char* s1 = "";int t=i;
+            while(t<data_len&&((data_str[t]>='a'&&data_str[t]<='z')||(data_str[t]>='A'&&data_str[t]<='Z')||data_str[t]=='_'||(data_str[t]>='0'&&data_str[t]<='9'))){
+                s1 = append_char_to_str(s1,data_str[t]);
+                // printf("Error detected");
+                t++;
             }
-            struct token temp;
-            temp.lexeme=s1;
-            temp.token_type=IDEN;
             cnt++;
+            i=t;
             continue;
         }
+        is_lexical_error=1;
+        return line_no;
     }
     return cnt;
 }
@@ -490,6 +469,16 @@ j++;
             tokens[j] = temp;
 j++;
             i += 5;
+            continue;
+        }
+        //*****************************IN KEYWORD*************************************
+        if(i + 2 < data_len && data_str[i] == 'i' && data_str[i + 1] == 'n' && (data_str[i + 2] == ' ')){
+            struct token temp;
+            temp.token_type = IN;
+            temp.lexeme = "in";
+            tokens[j] = temp;
+j++;
+            i += 2;
             continue;
         }
         //*****************************IF KEYWORD*************************************
@@ -602,6 +591,43 @@ j++;
             i=i+4;
             continue;
         }
+        //****************************ASSIGN **************************************************
+        if(i + 2 < data_len && data_str[i] == '+' && data_str[i + 1] == '='  ){
+            struct token temp;
+            temp.token_type =ASSIGN;
+            temp.lexeme = "+=";
+            tokens[j] = temp;
+j++;
+            i += 2;
+            continue;
+        }
+        if(i + 2 < data_len && data_str[i] == '-' && data_str[i + 1] == '='  ){
+            struct token temp;
+            temp.token_type = ASSIGN;
+            temp.lexeme = "-=";
+            tokens[j] = temp;
+j++;
+            i += 2;
+            continue;
+        }
+        if(i + 2 < data_len && data_str[i] == '*' && data_str[i + 1] == '='  ){
+            struct token temp;
+            temp.token_type = ASSIGN;
+            temp.lexeme = "*=";
+            tokens[j] = temp;
+j++;
+            i += 2;
+            continue;
+        }
+        if(i + 2 < data_len && data_str[i] == '/' && data_str[i + 1] == '='  ){
+            struct token temp;
+            temp.token_type = ASSIGN;
+            temp.lexeme = "/=";
+            tokens[j] = temp;
+j++;
+            i += 2;
+            continue;
+        }
         //*****************************ARITHMETIC OPERATORS*************************************
         char arithmetics[7] = {'+', '-', '/', '*', ':', '.', ','};
         int arithmetic_token_no[7] = {ADD, SUB, DIV, MUL, COLON, DOT, COMMA};
@@ -631,6 +657,7 @@ j++;
             tokens[j] = temp;
 j++;
             i += 2;
+            continue;
         }
 
         if(i + 2 < data_len && data_str[i] == '>' && data_str[i + 1] == '='  ){
@@ -640,6 +667,7 @@ j++;
             tokens[j] = temp;
 j++;
             i += 2;
+            continue;
         }
 
         if(i + 2 < data_len && data_str[i] == '=' && data_str[i + 1] == '='  ){
@@ -649,6 +677,7 @@ j++;
             tokens[j] = temp;
 j++;
             i += 2;
+            continue;
         }
 
         if(i + 2 < data_len && data_str[i] == '!' && data_str[i + 1] == '='  ){
@@ -658,7 +687,9 @@ j++;
             tokens[j] = temp;
 j++;
             i += 2;
+            continue;
         }
+        
 
         if(i + 1 < data_len && data_str[i] == '<'   ){
             struct token temp;
@@ -667,6 +698,7 @@ j++;
             tokens[j] = temp;
 j++;
             i += 1;
+            continue;
         }
 
         if(i + 1 < data_len && data_str[i] == '>'  ){
@@ -676,6 +708,7 @@ j++;
             tokens[j] = temp;
 j++;
             i += 1;
+            continue;
         }
         if(i + 1 < data_len && data_str[i] == '='  ){
             struct token temp;
@@ -684,6 +717,7 @@ j++;
             tokens[j] = temp;
 j++;
             i += 1;
+            continue;
         }
         //*******************************BOOL*****************************************
         if(i+3<data_len&& data_str[i] == 'T' && data_str[i + 1] == 'r' && data_str[i + 2] == 'u' && data_str[i + 3] == 'e'&&(i+4==data_len||data_str[i+4]==' '||data_str[i+4]=='\n')  ){
@@ -722,7 +756,7 @@ j++;
         //*****************************ID KEYWORD*************************************
         if((data_str[i]>='a'&&data_str[i]<='z')||(data_str[i]>='A'&&data_str[i]<='Z')||data_str[i]=='_'){
             char* s1 = "";int t=i;
-            while(((data_str[t]>='a'&&data_str[t]<='z')||(data_str[t]>='A'&&data_str[t]<='Z')||data_str[t]=='_'||(data_str[t]>='0'&&data_str[t]<='9'))&&t<data_len){
+            while(t<data_len&&((data_str[t]>='a'&&data_str[t]<='z')||(data_str[t]>='A'&&data_str[t]<='Z')||data_str[t]=='_'||(data_str[t]>='0'&&data_str[t]<='9'))){
                 s1 = append_char_to_str(s1,data_str[t]);
                 // printf("Error detected");
                 t++;
@@ -735,7 +769,160 @@ j++;
             i=t;
             continue;
         }
+
     }
+}
+int is_cond(struct token* tokens,int i, int exp_tok){
+    int state_no=0;int par_cnt=0;
+    while(i<token_cnt&&(tokens[i].token_type!=exp_tok||exp_tok==EOFT)){
+        if(par_cnt<0){
+            is_paranthesis_error = 1;
+            return 0;
+        }
+        if(state_no==0){
+            if(tokens[i].token_type==NOT){
+                i++;
+                continue;
+            }
+            if(tokens[i].token_type==LPAR){
+                par_cnt++;
+                i++;
+                continue;
+            }
+            if(tokens[i].token_type==IDEN||tokens[i].token_type==NUM){
+                state_no=1;
+                i++;
+                continue;
+            }
+        }
+        if(state_no==1){
+            int acceptable_tokens[12] = {LE, EQ, GE, NE, LT, GT, ADD, SUB, MUL, DIV, AND, OR};
+            if(tokens[i].token_type==RPAR){
+                i++;
+                par_cnt--;
+                continue;
+            }
+            int is_accepted=0;
+            for(int j=0;j<12;j++){
+                if(tokens[i].token_type==acceptable_tokens[j]){
+                    i++;
+                    state_no=0;
+                    is_accepted=1;
+                    break;
+                }
+            }
+            if(is_accepted==1){
+                continue;
+            }
+        }
+        return 0;
+    }
+    if(i==token_cnt&&exp_tok!=EOFT){
+        return 0;
+
+    }
+    if(par_cnt!=0){
+        is_paranthesis_error = 1;
+        return 0;
+    }
+    return 1;
+}
+int is_typo(struct token* tokens){
+    int line_no=1;
+    for(int i = 0; i < token_cnt;){
+        // printf("%s\n",tokens[i].lexeme);
+        if(tokens[i].token_type==INDEN){
+            // printf("ddbg");
+            i++;
+            line_no++;
+            continue;
+        }
+        // ********************************** for ID in ID: *********************************************
+        if(i+4<token_cnt&&tokens[i].token_type==FOR&&tokens[i+1].token_type==IDEN&&tokens[i+2].token_type==IN&&tokens[i+3].token_type==IDEN&&tokens[i+4].token_type==COLON){
+            i+=5;
+            continue;
+        }
+        // ********************************** for ID in range(NUM): *************************************
+        if(i+4<token_cnt&&tokens[i].token_type==FOR&&tokens[i+1].token_type==IDEN&&tokens[i+2].token_type==IN&&tokens[i+3].token_type==RANGE&&tokens[i+4].token_type==LPAR){
+            int t=i+5;
+            while(t<token_cnt&&tokens[t].token_type!=RPAR){
+                t++;
+            }
+            if(t+1<token_cnt&&tokens[t+1].token_type==COLON){
+                t+=2;
+                i=t;
+                continue;
+            }
+           
+        }
+        // ********************************** while {is_cond}:*******************************************
+        if(i+1<token_cnt&&tokens[i].token_type==WHILE&&is_cond(tokens,i+1,COLON)){
+            while(tokens[i].token_type!=COLON){
+                i++;
+            }
+            i++;
+            continue;
+        }
+        // ********************************** if {is_cond}:**********************************************
+        if(i+1<token_cnt&&tokens[i].token_type==IF&&is_cond(tokens,i+1,COLON)){
+            while(tokens[i].token_type!=COLON){
+                i++;
+            }
+            i++;
+            continue;
+        }
+        // ********************************** elif {is_cond}:********************************************
+        if(i+1<token_cnt&&tokens[i].token_type==ELIF&&is_cond(tokens,i+1,COLON)){
+            while(tokens[i].token_type!=COLON){
+                i++;
+            }
+            i++;
+            continue;
+        }
+        // ********************************** else {is_cond}:********************************************
+        if(i+1<token_cnt&&tokens[i].token_type==ELSE && is_cond(tokens,i+1,COLON)){
+            while(tokens[i].token_type!=COLON){
+                i++;
+            }
+            i++;
+            continue;
+        }
+        // ********************************** print()****************************************************
+        if(i+3<token_cnt&&tokens[i].token_type==PRINT&&tokens[i+1].token_type==LPAR&&tokens[i+2].token_type==STR&&tokens[i+3].token_type==RPAR){
+            i+=4;
+            continue;
+        }
+        if(i+2<token_cnt&&tokens[i].token_type==PRINT&&tokens[i+1].token_type==LPAR&&is_cond(tokens,i+2,RPAR)){
+            i+=2;
+            while(i<token_cnt&&tokens[i].token_type!=RPAR){
+                i++;
+            }
+            i++;
+            continue;
+        }
+        // ********************************** id=input(str)****************************************************
+        if(i+3<token_cnt&&tokens[i].token_type==IDEN&&tokens[i+1].token_type==ASSIGN&&tokens[i+2].token_type==INPUT&&tokens[i+3].token_type==LPAR&&tokens[i+4].token_type==STR&&tokens[i+5].token_type==RPAR){
+            i+=4;
+            continue;
+        }
+        // ********************************** ID = {is_expr}*********************************************
+        if(i+2<token_cnt&&tokens[i].token_type==IDEN&&tokens[i+1].token_type==ASSIGN&&(is_cond(tokens,i+2,INDEN)||is_cond(tokens,i+2,EOFT))){
+
+            i=i+2;
+            while(i<token_cnt&&tokens[i].token_type!=INDEN){
+                i++;
+            }
+            continue;
+        }
+        // ********************************** ID = STR***************************************************
+        if(i+3<token_cnt&&tokens[i].token_type==IDEN&&tokens[i+1].token_type==ASSIGN&&tokens[i].token_type==STR){
+            i=i+3;
+            continue;
+        }
+        return line_no;
+        
+    }
+    return 0;
 }
 int main(){
     char* data_str = file_to_str();
@@ -746,14 +933,26 @@ int main(){
         // print_error
     }
     int cnt = get_tokens_cnt(data_str);
-    printf("No of tokens = %d\n", cnt);
+    if(is_lexical_error==1){
+        printf("Unidentified symbol in line :%d",cnt);
+        return 0;
+    }
+    token_cnt=cnt;
+    // printf("No of tokens = %d\n", cnt);
     struct token tokens[cnt];
     get_tokens(data_str, tokens);
-    for(int i = 0 ; i < cnt; i++){
-        printf("%s\n", tokens[i].lexeme);
-    }
-    // error_info = is_typo(data_str);
-    // if(error_info != 0){
-    //     printf("Typo at line %d", error_info);
+    // for(int i = 0 ; i < cnt; i++){
+    //     printf("%s\n", tokens[i].lexeme);
     // }
+    int error=is_typo(tokens);
+    // error_info = is_typo(data_str);
+    if(error!= 0){
+        if(is_paranthesis_error){
+            printf("Unbalanced paranthesis at line %d", error);
+            return 0;
+        }
+        printf("Syntax error at line %d", error);
+        return 0;
+    }
+    printf("NO Errors :)");
 }
