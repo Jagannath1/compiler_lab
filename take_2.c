@@ -253,6 +253,49 @@ struct token* get_tokens(char* data_str){
         if(is_arithmetic == 1){
             continue;
         }
+        //**********************************RELOP*************************************
+        if(i + 2 < data_len && data_str[i] == '<' && data_str[i + 1] == '='  ){
+            struct token temp;
+            temp.token_type = LE;
+            tokens.push_back(temp);
+            i += 2;
+        }
+
+        if(i + 2 < data_len && data_str[i] == '>' && data_str[i + 1] == '='  ){
+            struct token temp;
+            temp.token_type = GE;
+            tokens.push_back(temp);
+            i += 2;
+        }
+
+        if(i + 2 < data_len && data_str[i] == '=' && data_str[i + 1] == '='  ){
+            struct token temp;
+            temp.token_type = EQ;
+            tokens.push_back(temp);
+            i += 2;
+        }
+
+        if(i + 2 < data_len && data_str[i] == '!' && data_str[i + 1] == '='  ){
+            struct token temp;
+            temp.token_type = NE;
+            tokens.push_back(temp);
+            i += 2;
+        }
+
+        if(i + 1 < data_len && data_str[i] == '<'   ){
+            struct token temp;
+            temp.token_type = LT;
+            tokens.push_back(temp);
+            i += 1;
+        }
+
+        if(i + 1 < data_len && data_str[i] == '>'  ){
+            struct token temp;
+            temp.token_type = GT;
+            tokens.push_back(temp);
+            i += 1;
+        }
+
         //*****************************ID KEYWORD*************************************
         if((data_str[i]>='a'&&data_str[i]<='z')||(data_str[i]>='A'&&data_str[i]<='Z')||data_str[i]=='_'){
             char* s1;
@@ -266,6 +309,7 @@ struct token* get_tokens(char* data_str){
             push_back(tokens,temp);
             continue;
         }
+        
     }
 }
 int main(){
